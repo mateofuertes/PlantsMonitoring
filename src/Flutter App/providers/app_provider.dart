@@ -2,15 +2,37 @@ import 'package:flutter/material.dart';
 import 'package:app/services/image_service.dart';
 import 'package:app/services/date_service.dart';
 
+/// [AppProvider] is a ChangeNotifier class responsible for managing the application's state and logic.
+/// It handles interactions across different screens, such as managing selected dates,
+/// error messages, loading statuses, and fetching images from a remote source.
+///
+/// This provider is designed to centralize the state management for the app, allowing
+/// multiple screens or widgets to listen for changes and update accordingly.
 class AppProvider with ChangeNotifier {
+  
+  /// The date selected by the user in the calendar screen.
   DateTime _selectedDay = DateTime.now();
+
+  /// The currently highlighted date in the calendar, which is typically today.
   DateTime _focusedDay = DateTime.now();
+
+  /// A boolean flag to indicate whether the app is currently loading data (e.g., fetching images).
   bool _isLoading = false;
+
+  /// A map that stores images categorized by date.
+  /// The key is a date string, and the value is a list of image URLs. 
   Map<String, List<String>> _imagesByDate = {};
+
+  /// An error message to indicate issues during data fetching or processing.
   String? _errorMessage;
+
+  /// The base URL of the server that the app communicates with.
   String? _baseUrl;
+
+  /// An integer to track which screen is currently selected in the app.
   int selectedScreen = 1;
 
+  /// ---- Getters ----
   DateTime get selectedDay => _selectedDay;
   DateTime get focusedDay => _focusedDay;
   bool get isLoading => _isLoading;
@@ -19,6 +41,7 @@ class AppProvider with ChangeNotifier {
   String? get baseUrl => _baseUrl;
   int get getSelectedScreen => selectedScreen;
 
+  /// ---- Setters (Include notify listeners of the change). ----
   void setSelectedDay(DateTime day) {
     _selectedDay = day;
     notifyListeners();
@@ -54,35 +77,33 @@ class AppProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  /// Asynchronously fetches images from the server.
+  /// Sets the loading state to true while the request is in progress and handles errors if the request fails.
+  /// Once the images are fetched successfully, they are stored in [_imagesByDate].
   Future<void> fetchImages() async {
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
-
+    setIsLoading(true);
+    setErrorMessage(null);
     try {
       _imagesByDate = await ImageService.fetch(_baseUrl!);
     } catch (error) {
-      _imagesByDate = {};
-      _errorMessage = 'Failed to load images';
+      setImagesByDate({});
+      setErrorMessage('Failed to load images');
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      setIsLoading(false);
     }
   }
 
+  /// Asynchronously sends the current date to the server.
+  /// Sets the loading state to true while the request is in progress and handles any errors during the request.
   Future<void> setDate() async {
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
-
+    setIsLoading(true);
+    setErrorMessage(null);
     try {
       final response = await DateService.sendDate(_baseUrl!);
-      debugPrint(response);
     } catch (error) {
-      _errorMessage = 'Failed to set the actual date';
+      setErrorMessage('Failed to set the actual date');
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      setIsLoading(false);
     }
   }
 
