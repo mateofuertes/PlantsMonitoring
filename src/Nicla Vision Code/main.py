@@ -7,19 +7,26 @@ import io
 import os, tf, math, uos, gc
 import omv
 
-# Configuration
-ssid = 'plantsAccesPoint'
-password = 'ChangeMe'
-api_url = 'http://10.3.141.1:5000/upload'
-model = 'trained.tflite'
-labels_file = 'labels.txt'
-min_confidence = 0.70
-frecuency = 1
-delta = 86400
-colors = [(255, 0, 0), (0, 255, 0), (0, 0, 255)]
-desired_labels = ['State 1', 'State 2', 'State 3', 'Orchidaceae']
+# Configuration constants
+ssid = 'plantsAccesPoint' # Wi-Fi SSID to connect to
+password = 'ChangeMe' # Wi-Fi password
+api_url = 'http://10.3.141.1:5000/upload' # API endpoint for uploading images
+model = 'trained.tflite' # Path to the TensorFlow Lite model
+labels_file = 'labels.txt' # Path to the file containing label names
+min_confidence = 0.70 # Minimum confidence level for object detection
+frecuency = 1 # Frequency in seconds for object detection loop
+delta = 86400 # Interval in seconds for progress measurements (1 day)
+colors = [(255, 0, 0), (0, 255, 0), (0, 0, 255)] # Colors for drawing detection results
+desired_labels = ['State 1', 'State 2', 'State 3', 'Orchidaceae'] # Labels to trigger image upload
 
 def load_model(model, labels_file):
+    """
+    Load the TensorFlow Lite model and corresponding labels.
+
+    Args:
+        model (str): Path to the TensorFlow Lite model file.
+        labels_file (str): Path to the labels file.
+    """
     global net, labels
     try:
         net = tf.load(model, load_to_fb=uos.stat(model)[6] > (gc.mem_free() - (64*1024)))
@@ -32,6 +39,16 @@ def load_model(model, labels_file):
     omv.disable_fb(True)
 
 def connect_wifi(ssid, password):
+    """
+    Connect to a Wi-Fi network.
+
+    Args:
+        ssid (str): The Wi-Fi SSID.
+        password (str): The Wi-Fi password.
+
+    Prints:
+        Connection status and IP address upon success, error message upon failure.
+    """
     try:
         wlan = network.WLAN(network.STA_IF)
         wlan.active(True)
@@ -44,6 +61,12 @@ def connect_wifi(ssid, password):
         print(f"Error trying to connect to Wifi: {e}")
 
 def capture_image():
+    """
+    Capture an image using the sensor.
+
+    Returns:
+        Image object if successful, 0 if failed.
+    """
     try:
         img = sensor.snapshot()
         return img
@@ -52,6 +75,15 @@ def capture_image():
         return 0
 
 def process_image(img):
+    """
+    Process an image to perform object detection using the loaded model.
+
+    Args:
+        img (Image): The image to process.
+
+    Returns:
+        tuple: Processed image with drawn circles and detection results (label, bounding box).
+    """
     try:
         detection_results = []
         for i, detection_list in enumerate(net.detect(img,
@@ -69,6 +101,16 @@ def process_image(img):
         print(f"Error processing image: {e}")
 
 def upload_image(api_url, image_data):
+    """
+    Upload an image to the API endpoint.
+
+    Args:
+        api_url (str): The API URL to which the image will be uploaded.
+        image_data (bytes): The image data to upload.
+
+    Prints:
+        Response from the server or an error message in case of failure.
+    """
     try:
         image_file = io.BytesIO(image_data)
         files = {'file': ('image.jpg', image_file, 'image/jpeg')}
@@ -82,6 +124,15 @@ def upload_image(api_url, image_data):
         print(f"Error uploading image: {e}")
 
 def detection(timer):
+    """
+    Periodically perform object detection and upload images if desired labels are detected.
+
+    Args:
+        timer: Timer object (unused in this function).
+    
+    Prints:
+        Detection results and uploads the image if relevant objects are detected.
+    """
     try:
         gc.collect()
         img = capture_image()
@@ -95,6 +146,15 @@ def detection(timer):
         print(f"Error in detection process: {e}")
 
 def progress_measurement(timer):
+    """
+    Capture an image periodically to track progress over time and upload it.
+
+    Args:
+        timer: Timer object (unused in this function).
+
+    Prints:
+        Confirmation message after uploading the progress measurement image.
+    """
     try:
         img = capture_image()
         processed_img, detection_results = process_image(img)
@@ -105,10 +165,11 @@ def progress_measurement(timer):
         print(f"Error in the progress measurement process: {e}")
 
 def main():
-
+    # Load model and connect to Wi-Fi
     load_model(model, labels_file)
     connect_wifi(ssid, password)
 
+    # Initialize and configure the sensor (camera)
     try:
         sensor.reset()
         sensor.set_pixformat(sensor.RGB565)
@@ -117,6 +178,7 @@ def main():
     except Exception as e:
         print(f"Error configuring the camera: {e}")
 
+    # Timing variables for periodic tasks
     last_time = time.ticks_ms()
     daily_timer = 0
     daily_event_interval = delta / 3
@@ -125,6 +187,7 @@ def main():
         gc.collect()
         current_time = time.ticks_ms()
 
+         # Check if it's time to perform object detection based on frequency
         if time.ticks_diff(current_time, last_time) >= frecuency * 1000:
             img = capture_image()
             processed_img, detection_results = process_image(img)
@@ -132,11 +195,13 @@ def main():
 
             daily_timer += frecuency
 
+            # Perform progress measurement upload after a set interval
             if (daily_timer >= daily_event_interval):
                 image_data = processed_img.compress(quality=90).bytearray()
                 upload_image(api_url, image_data)
                 daily_timer = 0
 
+            # If any desired label is detected, upload the image
             if any(label in desired_labels for label, _ in detection_results):
                 image_data = processed_img.compress(quality=90).bytearray()
                 upload_image(api_url, image_data)
