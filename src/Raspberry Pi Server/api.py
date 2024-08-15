@@ -6,11 +6,14 @@ from flask_cors import CORS
 import datetime
 
 app = Flask(__name__)
+
+# Enable Cross-Origin Resource Sharing (CORS) for the app to allow cross-origin requests.
 cors = CORS(app)
 
 UPLOAD_DIRECTORY = 'images'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
+# Ensure that the upload directory exists, if not, it is created.
 os.makedirs(UPLOAD_DIRECTORY, exist_ok=True)
 
 @app.route('/')
@@ -19,7 +22,15 @@ def home():
 
 @app.route('/set_date', methods = ['POST'])
 def set_date():
-	"""Set the date"""
+	"""
+	Endpoint to set the system date and time.
+	
+	Expects a POST request with 'new_date' in the format 'YYYY-MM-DD HH:MM:SS' as form data.
+        This endpoint sets the system date and time using the `date` command via `subprocess`.
+	
+	Returns:
+	   JSON response with a success or error message depending on the outcome.
+	"""
 	new_date = request.form.get('new_date')
 	if new_date:
 		try:
@@ -37,21 +48,51 @@ def set_date():
 
 @app.route('/images', methods = ['GET'])
 def list_images():
-	"""Avaiable Images to Download"""
+    	"""
+    	Endpoint to list all available images in the upload directory.
+	
+    	Returns:
+	   A JSON list of filenames of all images stored in the upload directory.
+	"""
 	files = os.listdir(UPLOAD_DIRECTORY)
 	return jsonify(files)
 
 @app.route('/images/<filename>', methods = ['GET'])
 def get_image(filename):
-	"""Download a specific image"""
+    	"""
+    	Endpoint to download a specific image by filename.
+
+    	Args:
+	   filename (str): The name of the image file to be downloaded.
+
+   	Returns:
+	   The requested image file if it exists, otherwise an error response.
+    	"""
 	return send_from_directory(UPLOAD_DIRECTORY, filename)
 
 def allowed_file(filename):
+    	"""
+    	Helper function to check if a file has an allowed extension.
+
+    	Args:
+	   filename (str): The name of the file to be checked.
+
+    	Returns:
+	   bool: True if the file extension is allowed, False otherwise.
+    	"""
 	return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @app.route('/upload', methods = ['POST'])
 def upload():
-	"""Upload New Image"""
+	"""
+	Endpoint to upload a new image file.
+	
+	Expects a file as part of the POST request. Only files with allowed extensions (png, jpg, jpeg) are accepted.
+	The file is renamed with a timestamp to prevent overwriting and stored in the upload directory.
+	
+	Returns:
+	   JSON response with a success or error message depending on the outcome.
+	"""
 	if 'file' not in request.files:
 		return jsonify({'error': 'File not found'}), 400
 	file = request.files['file']
