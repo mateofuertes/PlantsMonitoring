@@ -3,15 +3,19 @@ import 'package:table_calendar/table_calendar.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
 
+/// [CalendarScreen] displays a calendar interface using [TableCalendar] for date selection.
+/// It interacts with the [AppProvider] to handle date changes and synchronization actions.
 class CalendarScreen extends StatelessWidget {
   const CalendarScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // Access the provider that holds the state of the application
     final provider = Provider.of<AppProvider>(context);
 
     return 
     Column(children: <Widget>[
+      // The calendar widget that allows users to select dates
       Center(
         child: TableCalendar(
           firstDay: DateTime.utc(2000, 1, 1),
@@ -37,6 +41,8 @@ class CalendarScreen extends StatelessWidget {
         ),
       ),
       const SizedBox(height: 20),
+      
+      // Button to update the date and time in the Raspberry Pi
       TextButton(
         style: ButtonStyle(
           backgroundColor: MaterialStateProperty.all(Colors.green),
