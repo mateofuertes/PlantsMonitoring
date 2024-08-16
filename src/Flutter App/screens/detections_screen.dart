@@ -4,6 +4,8 @@ import '../providers/app_provider.dart';
 import '../widgets/detections_widget.dart';
 import 'package:app/Utils/date_utils.dart';
 
+/// [DetectionsScreen] is a stateful widget that displays detections on a specific date.
+/// It uses [AppProvider] to fetch and display images, and the date utilities from [MyDateUtils].
 class DetectionsScreen extends StatefulWidget {
   const DetectionsScreen({super.key});
 
@@ -12,7 +14,7 @@ class DetectionsScreen extends StatefulWidget {
   _DetectionsScreenState createState() => _DetectionsScreenState();
 }
 
-
+// The state for this widget
 class _DetectionsScreenState extends State<DetectionsScreen> {
   @override
   void initState() {
@@ -24,12 +26,14 @@ class _DetectionsScreenState extends State<DetectionsScreen> {
   }
   @override
   Widget build(BuildContext context) {
+    // Access the provider that holds the state of the application
     final provider = Provider.of<AppProvider>(context);
 
     return Scaffold(
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Displays the selected date using a formatted string
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Text(
@@ -37,9 +41,11 @@ class _DetectionsScreenState extends State<DetectionsScreen> {
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
           ),
+          // Displays the detections using the DetectionsWidget
           const DetectionsWidget(),
         ],
       ),
+      // A floating action button to refresh the detections by fetching the images again
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Provider.of<AppProvider>(context, listen: false).fetchImages();
