@@ -6,16 +6,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_file_dialog/flutter_file_dialog.dart';
 import 'package:flutter/foundation.dart';
 
+/// [DownloadService] is responsible for downloading images from a server,
+/// creating a zip archive of the images, and saving the archive to external storage.
 class DownloadService {
-  static Future<void> downloadImages(
+    /// Downloads and zips images based on the selected option ('all' or 'range').
+    static Future<void> downloadImages(
       Map<String, List<String>> imagesByDate, String option, DateTime? startDate, DateTime? endDate) async {
     List<String> imagesToDownload = [];
-
+	    
+    // Determine which images to download based on the selected option
     switch (option) {
       case 'all':
         imagesToDownload = imagesByDate.values.expand((images) => images).toList();
         break;
       case 'range':
+        // Download images within the specified date range.
         if (startDate != null && endDate != null) {
           imagesToDownload = imagesByDate.entries
               .where((entry) {
@@ -28,17 +33,22 @@ class DownloadService {
         break;
     }
 
+    // If there are images to download, proceed with creating a zip file.
     if (imagesToDownload.isNotEmpty) {
       await _createZip(imagesToDownload);
     }
   }
 
+  /// Creates a zip archive from the provided list of image URLs.
+  /// Downloads each image and adds it to an [Archive] object. Once all images are added,
+  /// the archive is compressed into a zip file and saved temporarily. The zip file is
+  /// then passed to `_saveFileToExternalStorage` for external storage.
   static Future<void> _createZip(List<String> imageUrls) async {
     final tempDir = await getTemporaryDirectory();
     final zipFile = File('${tempDir.path}/images.zip');
-    debugPrint('Creating zip file at: ${zipFile.path}');
     final archive = Archive();
 
+    // Download each image and add it to the archive.
     for (String imageUrl in imageUrls) {
       try {
         final response = await _fetchImageWithRetry(imageUrl);
@@ -54,10 +64,12 @@ class DownloadService {
         debugPrint('Error downloading image $imageUrl: $e');
       }
     }
-
+	  
+    // Encode the archive into a zip file
     final encoder = ZipEncoder();
     final zipData = encoder.encode(archive);
 
+    // Save the zip file to temporary storage and then to external storage
     if (zipData != null) {
       await zipFile.writeAsBytes(zipData);
       debugPrint('Zip file created at: ${zipFile.path}');
@@ -67,6 +79,9 @@ class DownloadService {
     }
   }
 
+  /// Saves the given [file] (zip archive) to external storage using a file dialog.
+  ///
+  /// The user is prompted to choose the location to save the file using [FlutterFileDialog].
   static Future<void> _saveFileToExternalStorage(File file) async {
     final params = SaveFileDialogParams(sourceFilePath: file.path);
     final filePath = await FlutterFileDialog.saveFile(params: params);
@@ -77,6 +92,11 @@ class DownloadService {
     }
   }
 
+  /// Fetches an image from the given [imageUrl] with retry logic.
+  ///
+  /// Attempts to download the image up to [retries] times (default is 3).
+  /// Each attempt waits for 2 seconds before retrying if the download fails.
+  /// Returns an [http.Response] object if successful, or null if all attempts fail.
   static Future<http.Response?> _fetchImageWithRetry(String imageUrl, {int retries = 3}) async {
     int attempt = 0;
     while (attempt < retries) {
