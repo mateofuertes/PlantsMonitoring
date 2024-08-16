@@ -4,6 +4,9 @@ import 'package:provider/provider.dart';
 import 'package:app/providers/app_provider.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 
+/// The main entry point of the Flutter application ensures that Flutter bindings
+/// are initialized, initializes the FlutterDownloader plugin, and starts the app
+/// by running [MyApp].
 void main() async {  
   WidgetsFlutterBinding.ensureInitialized();
   await FlutterDownloader.initialize(
@@ -12,6 +15,10 @@ void main() async {
   runApp(const MyApp());
 }
 
+/// [MyApp] is the root widget of the application.
+///
+/// It wraps the entire app in a [ChangeNotifierProvider] that provides the [AppProvider]
+/// to the widget tree.
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -25,7 +32,7 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(
           primarySwatch: Colors.green,
         ),
-        home: const IpInputScreen(),
+        home: const IpInputScreen(), // The first screen displayed when the app starts.
       ),
     );
   }
