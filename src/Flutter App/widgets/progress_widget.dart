@@ -1,6 +1,7 @@
 import 'package:app/utils/date_utils.dart';
 import 'package:flutter/material.dart';
 
+/// [ProgressWidget] is a stateless widget that displays a image taken daily.
 class ProgressWidget extends StatelessWidget {
   final Map<String, List<String>> imagesByDate;
 
@@ -25,6 +26,7 @@ class ProgressWidget extends StatelessWidget {
       return dateB.compareTo(dateA);
     });
 
+    // Build the UI based on the images.
     return GridView.builder(
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 1,
