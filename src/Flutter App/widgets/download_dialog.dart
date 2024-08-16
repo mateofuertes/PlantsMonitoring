@@ -4,6 +4,10 @@ import '../providers/app_provider.dart';
 import '../services/download_service.dart';
 import 'package:intl/intl.dart';
 
+/// [DownloadDialog] is a stateful widget that provides a user interface for
+/// selecting download options for images. The user can choose to download all images
+/// or images within a specific date range. The widget also handles date picking and
+/// initiates the download process.
 class DownloadDialog extends StatefulWidget {
   const DownloadDialog({super.key});
 
@@ -12,15 +16,22 @@ class DownloadDialog extends StatefulWidget {
 }
 
 class _DownloadDialogState extends State<DownloadDialog> {
+  // Variable to track the selected download option ("all" or "range").
   String _selectedOption = 'all';
+
+  // Variables to store the selected start and end dates for the date range option.
   DateTime? _startDate;
   DateTime? _endDate;
 
   @override
   Widget build(BuildContext context) {
+    // Access the AppProvider to get image data and the current app state.
     final provider = Provider.of<AppProvider>(context);
+
+    // Calculate the total number of images across all dates.
     final totalImages = provider.imagesByDate.values.expand((x) => x).length;
 
+    // Build the AlertDialog that allows the user to choose download options.
     return AlertDialog(
       title: const Text('Download Images'),
       content: Column(
@@ -48,6 +59,7 @@ class _DownloadDialogState extends State<DownloadDialog> {
               });
             },
           ),
+          // Show date pickers for the date range if "range" is selected.
           if (_selectedOption == 'range')
             Column(
               children: [
@@ -80,6 +92,7 @@ class _DownloadDialogState extends State<DownloadDialog> {
                 ),
                 TextButton(
                   onPressed: () async {
+                    // Open a date picker dialog and let the user pick an end date.
                     DateTime? picked = await showDatePicker(
                       context: context,
                       initialDate: _endDate ?? DateTime.now(),
@@ -110,6 +123,7 @@ class _DownloadDialogState extends State<DownloadDialog> {
         ],
       ),
       actions: <Widget>[
+        // Button to trigger the download based on the selected option and dates.
         TextButton(
           child: const Text('Download', style: TextStyle(color: Colors.black)),
           onPressed: () {
@@ -130,6 +144,10 @@ class _DownloadDialogState extends State<DownloadDialog> {
     );
   }
 
+  /// Method to handle the downloading of images based on the user's selection.
+  /// 
+  /// [option] can be either "all" to download all images or "range" to download images within
+  /// a specific date range. [startDate] and [endDate] are only relevant if "range" is selected.
   void _downloadImages(BuildContext context, String option, DateTime? startDate, DateTime? endDate) async {
     final provider = Provider.of<AppProvider>(context, listen: false);
     provider.setIsLoading(true);
