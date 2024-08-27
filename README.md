@@ -1,8 +1,8 @@
-# Plants Monitoring System
+# Orchid Monitoring Module with Vision-Based Object Detection and Mobile Interface
 
 ## Overview
 
-The Plant Monitoring System is designed with the objective of performing a review of the progress of an orchid, as well as the detection of certain states of the plant using an Object Detection Model. After image capture and object detection using an Arduino Nicla Vision, the image is sent to a server running on a Raspberry Pi. Finally, in order to analyse the images, there is a mobile application that allows the images to be viewed or downloaded through a simple graphical interface.
+This module is designed with the objective of performing a review of the progress of orchids, as well as the detection of certain states of the plant using an Object Detection Model. After image capture and object detection using an Arduino Nicla Vision, the image is sent to a server running on a Raspberry Pi. Finally, in order to analyse the images, there is a mobile application that allows the user to view or download the images through a intuitive graphical interface.
 
 
 ## Components
