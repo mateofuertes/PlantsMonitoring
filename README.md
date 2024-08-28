@@ -2,7 +2,7 @@
 
 ## Overview
 
-This module is designed with the objective of performing a review of the progress of orchids, as well as the detection of certain states of the plant using an Object Detection Model. After image capture and object detection using an Arduino Nicla Vision, the image is sent to a server running on a Raspberry Pi. Finally, in order to analyse the images, there is a mobile application that allows the user to view or download the images through a intuitive graphical interface.
+This module is designed with the objective of performing detection of certain states of orchids using an Object Detection Model, as well as a review of the progress of the plants. After image capture and object detection using an Arduino Nicla Vision, the image is sent to a server running on a Raspberry Pi. Finally, in order to analyse the images, there is a mobile application that allows the user to view or download the images through a intuitive graphical interface.
 
 
 ## Components
